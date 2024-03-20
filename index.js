@@ -80,25 +80,7 @@ async function run() {
     });
 
     // ==============================================================
-    // For Relief Good post
-    const ReliefGoodsPost = db.collection("relief_goods");
-    app.get("/api/v1/reliefpost", async (req, res) => {
-      let query = {};
-      if (req.query.priority) {
-        query.priority = req.query.priority;
-      }
-      const cursor = ReliefGoodsPost.find(query);
-      const reliefPost = await cursor.toArray();
-      res.send({ status: true, data: reliefPost });
-    });
-    app.get("/api/v1/reliefpost/:id", async (req, res) => {
-      const id = req.params.id;
-      const result = await ReliefGoodsPost.findOne({
-        _id: new ObjectId(id),
-      });
-      res.send(result);
-    });
-    //  Create Supply Post
+
     app.post("/api/v1/supplys", async (req, res) => {
       const Supply = req.body;
       const result = await AllSupplyPost.insertOne(Supply);
@@ -116,6 +98,14 @@ async function run() {
       const supply = await cursor.toArray();
       res.send({ status: true, data: supply });
     });
+    // get single data
+    app.get("/api/v1/supplys/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await AllSupplyPost.findOne({
+        _id: new ObjectId(id),
+      });
+      res.send(result);
+    });
     // Edit Supply data
     app.put("/api/v1/supplys/:id", async (req, res) => {
       const id = req.params.id;
@@ -123,9 +113,12 @@ async function run() {
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
         $set: {
+          id: supply.id,
           title: supply.title,
-          category: supply.category,
+          image: supply.image,
           amount: supply.amount,
+          description: supply.description,
+          category: supply.category,
         },
       };
       const options = { upsert: true };
