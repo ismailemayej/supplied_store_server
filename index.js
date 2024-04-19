@@ -27,7 +27,6 @@ async function run() {
 
     const db = client.db("assignment");
     const collection = db.collection("users");
-
     // User Registration
     app.post("/api/v1/register", async (req, res) => {
       const { name, email, password } = req.body;
@@ -79,13 +78,68 @@ async function run() {
       });
     });
 
-    // ==============================================================
+    // ==============================Supply data================================
 
     app.post("/api/v1/supplys", async (req, res) => {
       const Supply = req.body;
       const result = await AllSupplyPost.insertOne(Supply);
       res.send(result);
       console.log(result, "all supply successfully");
+    });
+
+    // create Testimonial
+    const TestimonialData = db.collection("alltestimonial");
+    app.post("/api/v1/testimonial", async (req, res) => {
+      const testimonial = req.body;
+      const result = await TestimonialData.insertOne(testimonial);
+      res.send(result);
+      console.log(result, "Comment successfully");
+    });
+    //  get all Testimonial data
+    app.get("/api/v1/testimonial", async (req, res) => {
+      let query = {};
+      if (req.query.priority) {
+        query.priority = req.query.priority;
+      }
+      const cursor = TestimonialData.find(query);
+      const testimonial = await cursor.toArray();
+      res.send({ status: true, data: testimonial });
+    });
+    // create volunteer
+    const VolunteerData = db.collection("allvolunteer");
+    app.post("/api/v1/volunteer", async (req, res) => {
+      const volunteer = req.body;
+      const result = await VolunteerData.insertOne(volunteer);
+      res.send(result);
+      console.log(result, "volunteer successfully");
+    });
+    //  get all volunteer data
+    app.get("/api/v1/volunteer", async (req, res) => {
+      let query = {};
+      if (req.query.priority) {
+        query.priority = req.query.priority;
+      }
+      const cursor = VolunteerData.find(query);
+      const volunteer = await cursor.toArray();
+      res.send({ status: true, data: volunteer });
+    });
+    // create comments for community
+    const CommunityComments = db.collection("commnents");
+    app.post("/api/v1/community", async (req, res) => {
+      const community = req.body;
+      const result = await CommunityComments.insertOne(community);
+      res.send(result);
+      console.log(result, "Comment successfully");
+    });
+    //  get all commnets data
+    app.get("/api/v1/community", async (req, res) => {
+      let query = {};
+      if (req.query.priority) {
+        query.priority = req.query.priority;
+      }
+      const cursor = CommunityComments.find(query);
+      const supply = await cursor.toArray();
+      res.send({ status: true, data: supply });
     });
     //  Get All Supply Post
     const AllSupplyPost = db.collection("allsupplypost");
