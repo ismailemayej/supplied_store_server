@@ -45,17 +45,17 @@ async function run() {
 
       // Insert user into the database
       await collection.insertOne({ name, email, password: hashedPassword });
-
       res.status(201).json({
         success: true,
         message: "User registered successfully",
       });
     });
 
+    // Current user information
+
     // User Login
     app.post("/api/v1/login", async (req, res) => {
       const { email, password } = req.body;
-
       // Find user by email
       const user = await collection.findOne({ email });
       if (!user) {
@@ -66,7 +66,6 @@ async function run() {
       if (!isPasswordValid) {
         return res.status(401).json({ message: "Invalid email or password" });
       }
-
       // Generate JWT token
       const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET, {
         expiresIn: process.env.EXPIRES_IN,
@@ -101,6 +100,7 @@ async function run() {
       if (req.query.priority) {
         query.priority = req.query.priority;
       }
+
       const cursor = TestimonialData.find(query);
       const testimonial = await cursor.toArray();
       res.send({ status: true, data: testimonial });
