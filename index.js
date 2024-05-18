@@ -25,8 +25,9 @@ async function run() {
     await client.connect();
     console.log("Connected to MongoDB");
 
-    const db = client.db("assignment");
-    const collection = db.collection("users");
+    const db = client.db("washingSupplied");
+    const collection = db.collection("user");
+    const ProductsCollection = db.collection("products");
     // User Registration
     app.post("/api/v1/register", async (req, res) => {
       const { name, email, password } = req.body;
@@ -50,8 +51,6 @@ async function run() {
         message: "User registered successfully",
       });
     });
-
-    // Current user information
 
     // User Login
     app.post("/api/v1/login", async (req, res) => {
@@ -77,138 +76,49 @@ async function run() {
       });
     });
 
-    // ==============================Supply data================================
-
-    app.post("/api/v1/supplys", async (req, res) => {
-      const Supply = req.body;
-      const result = await AllSupplyPost.insertOne(Supply);
-      res.send(result);
-      console.log(result, "all supply successfully");
-    });
-
-    // create Testimonial
-    const TestimonialData = db.collection("alltestimonial");
-    app.post("/api/v1/testimonial", async (req, res) => {
-      const testimonial = req.body;
-      const result = await TestimonialData.insertOne(testimonial);
-      res.send(result);
-      console.log(result, "Comment successfully");
-    });
-    //  get all Testimonial data
-    app.get("/api/v1/testimonial", async (req, res) => {
+    //  get all Supplied Products
+    app.get("/api/v1/products", async (req, res) => {
       let query = {};
       if (req.query.priority) {
         query.priority = req.query.priority;
       }
-
-      const cursor = TestimonialData.find(query);
+      const cursor = ProductsCollection.find(query);
       const testimonial = await cursor.toArray();
       res.send({ status: true, data: testimonial });
     });
-    // create volunteer
-    const VolunteerData = db.collection("allvolunteer");
-    app.post("/api/v1/volunteer", async (req, res) => {
-      const volunteer = req.body;
-      const result = await VolunteerData.insertOne(volunteer);
-      res.send(result);
-      console.log(result, "volunteer successfully");
-    });
-    //  get all volunteer data
-    app.get("/api/v1/volunteer", async (req, res) => {
-      let query = {};
-      if (req.query.priority) {
-        query.priority = req.query.priority;
+    // get data by category
+    app.get("/api/v1/", async (req, res) => {
+      const category = req.query.category;
+      let datas = [];
+      if (category == "all-products") {
+        datas = await ProductsCollection.find({}).toArray();
+        return res.send({ status: true, message: "success", data: datas });
       }
-      const cursor = VolunteerData.find(query);
-      const volunteer = await cursor.toArray();
-      res.send({ status: true, data: volunteer });
+      datas = await ProductsCollection.find({
+        category__name: { $regex: category, $options: "i" },
+      }).toArray();
+      res.send({ status: true, message: "success", data: datas });
     });
-    // create comments for community
-    const CommunityComments = db.collection("commnents");
-    app.post("/api/v1/community", async (req, res) => {
-      const community = req.body;
-      const result = await CommunityComments.insertOne(community);
-      res.send(result);
-      console.log(result, "Comment successfully");
-    });
-    //  get all commnets data
-    app.get("/api/v1/community", async (req, res) => {
-      let query = {};
-      if (req.query.priority) {
-        query.priority = req.query.priority;
-      }
-      const cursor = CommunityComments.find(query);
-      const supply = await cursor.toArray();
-      res.send({ status: true, data: supply });
-    });
-    //  Get All Supply Post
-    const AllSupplyPost = db.collection("allsupplypost");
-    app.get("/api/v1/supplys", async (req, res) => {
-      let query = {};
-      if (req.query.priority) {
-        query.priority = req.query.priority;
-      }
-      const cursor = AllSupplyPost.find(query);
-      const supply = await cursor.toArray();
-      res.send({ status: true, data: supply });
-    });
-    // get single data
-    app.get("/api/v1/supplys/:id", async (req, res) => {
-      const id = req.params.id;
-      const result = await AllSupplyPost.findOne({
-        _id: new ObjectId(id),
-      });
-      res.send(result);
-    });
-    // Edit Supply data
-    app.put("/api/v1/supplys/:id", async (req, res) => {
-      const id = req.params.id;
-      const supply = req.body;
-      const filter = { _id: new ObjectId(id) };
-      const updateDoc = {
-        $set: {
-          id: supply.id,
-          title: supply.title,
-          image: supply.image,
-          amount: supply.amount,
-          description: supply.description,
-          category: supply.category,
-        },
-      };
-      const options = { upsert: true };
-      const result = await AllSupplyPost.updateOne(filter, updateDoc, options);
-      res.json(result);
-    });
-    //  Delete Supply data
-    app.delete("/api/v1/supplys/:id", async (req, res) => {
-      const id = req.params.id;
-      const result = await AllSupplyPost.deleteOne({
-        _id: new ObjectId(id),
-      });
-      console.log(result);
-      res.send(result);
-    });
-    // Gallery image
-    const GalleryImage = db.collection("galleryimage");
-    app.get("/api/v1/gellery", async (req, res) => {
-      let query = {};
-      if (req.query.priority) {
-        query.priority = req.query.priority;
-      }
-      const cursor = GalleryImage.find(query);
-      const reliefPost = await cursor.toArray();
-      res.send({ status: true, data: reliefPost });
-    });
-    // ==============================================================
 
+    // get single data
+    app.get("/api/v1/product/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await ProductsCollection.findOne({
+        _id: new ObjectId(id),
+      });
+      res.send(result);
+    });
+
+    // ==============================================================
     // Start the server
     app.listen(port, () => {
-      console.log(`Server is running on http://localhost:${port}`);
+      console.log(
+        `Washing Supplied store Server is running on http://localhost:${port}`
+      );
     });
   } finally {
   }
 }
-
 run().catch(console.dir);
 
 // Test route
