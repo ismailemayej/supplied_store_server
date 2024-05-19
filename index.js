@@ -124,7 +124,7 @@ run().catch(console.dir);
 // Test route
 app.get("/", (req, res) => {
   const serverStatus = {
-    message: "Server is running smoothly",
+    message: "Washing Supplied store Server is running smoothly",
     timestamp: new Date(),
   };
   res.json(serverStatus);
