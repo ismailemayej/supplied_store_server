@@ -87,31 +87,10 @@ async function run() {
       res.send({ status: true, data: testimonial });
     });
 
-    // get data by category
-    app.get("/api/v1/", async (req, res) => {
-      const category = req.query.category;
-      let datas = [];
-      if (category == "all-products") {
-        datas = await ProductsCollection.find({}).toArray();
-        return res.send({ status: true, message: "success", data: datas });
-      }
-      datas = await ProductsCollection.find({
-        category__name: { $regex: category, $options: "i" },
-      }).toArray();
-      res.send({ status: true, message: "success", data: datas });
-    });
+    // get data by category ,price and rating
 
-    // get single data
-    app.get("/api/v1/product/:id", async (req, res) => {
-      const id = req.params.id;
-      const result = await ProductsCollection.findOne({
-        _id: new ObjectId(id),
-      });
-      res.send(result);
-    });
-    // Get products filtered by price and rating
-    app.get("/api/v1/allproducts", async (req, res) => {
-      const { minPrice, maxPrice, minRating } = req.query;
+    app.get("/api/v1/", async (req, res) => {
+      const { minPrice, maxPrice, minRating, category } = req.query;
       const filter = {};
 
       if (minPrice) filter.price = { $gte: parseFloat(minPrice) };
@@ -120,11 +99,30 @@ async function run() {
       if (minRating) filter.ratings = { $gte: parseFloat(minRating) };
 
       try {
-        const products = await ProductsCollection.find(filter).toArray();
-        res.json({ status: true, data: products });
+        let datas = [];
+        if (category) {
+          if (category.toLowerCase() === "all-products") {
+            datas = await ProductsCollection.find({}).toArray();
+          } else {
+            filter.category__name = { $regex: category, $options: "i" };
+            datas = await ProductsCollection.find(filter).toArray();
+          }
+        } else {
+          datas = await ProductsCollection.find(filter).toArray();
+        }
+
+        res.json({ status: true, message: "success", data: datas });
       } catch (err) {
         res.status(500).send({ status: false, message: err.message });
       }
+    });
+    // get single data
+    app.get("/api/v1/product/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await ProductsCollection.findOne({
+        _id: new ObjectId(id),
+      });
+      res.send(result);
     });
 
     // ==============================================================
