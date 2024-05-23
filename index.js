@@ -86,6 +86,7 @@ async function run() {
       const testimonial = await cursor.toArray();
       res.send({ status: true, data: testimonial });
     });
+
     // get data by category
     app.get("/api/v1/", async (req, res) => {
       const category = req.query.category;
@@ -107,6 +108,23 @@ async function run() {
         _id: new ObjectId(id),
       });
       res.send(result);
+    });
+    // Get products filtered by price and rating
+    app.get("/api/v1/allproducts", async (req, res) => {
+      const { minPrice, maxPrice, minRating } = req.query;
+      const filter = {};
+
+      if (minPrice) filter.price = { $gte: parseFloat(minPrice) };
+      if (maxPrice)
+        filter.price = { ...filter.price, $lte: parseFloat(maxPrice) };
+      if (minRating) filter.ratings = { $gte: parseFloat(minRating) };
+
+      try {
+        const products = await ProductsCollection.find(filter).toArray();
+        res.json({ status: true, data: products });
+      } catch (err) {
+        res.status(500).send({ status: false, message: err.message });
+      }
     });
 
     // ==============================================================
